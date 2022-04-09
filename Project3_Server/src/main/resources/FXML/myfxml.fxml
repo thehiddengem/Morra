@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Label?>
+
+<BorderPane styleClass="border" xmlns:fx="http://javafx.com/fxml/1" fx:controller = "MyController" fx:id = "root">
+	
+	<left>
+		<VBox fx:id="vbox_1">
+	
+			<Label fx:id = "l_port" text = "PORT"/>
+			<TextField BorderPane.alignment = "TOP_LEFT" fx:id = "tf_port" promptText = "5555" />
+			<Button fx:id = "button_b1" text = "Start Server!" onAction = "#button_1Method"/>
+			<Button fx:id = "button_b2" text = "Start Server!" onAction = "#button_2Method"/>
+			<Label fx:id = "l_player_count" text = "Players" />
+		</VBox>
+	
+	</left>
+	
+	
+</BorderPane>
+
