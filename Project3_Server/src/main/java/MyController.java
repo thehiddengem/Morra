@@ -18,6 +18,7 @@ import javafx.stage.Stage;
 public class MyController implements Initializable {
 	
     static Thread t;
+    static ThreadedServer s;
 	
     @FXML
     private static Label l_player_count;
@@ -64,8 +65,8 @@ public class MyController implements Initializable {
 		button_b1.setText("Starting...");
 		try {
 			Integer port = Integer.parseInt(tf_port.getText());
-			ThreadedServer server = new ThreadedServer(port);
-		    t = new Thread(server);
+			s = new ThreadedServer(port);
+		    t = new Thread(s);
 			t.start();
 			button_b1.setText("Server Running!");
 			
@@ -86,7 +87,12 @@ public class MyController implements Initializable {
 
 	public void button_2Method(ActionEvent e) throws IOException{
 		
-		System.out.println("Button 2 hit");
+		if (s == null) {
+			System.out.println("ThreadedServer is null, cannot fetch gameQueue");
+		}
+		else {
+			s.printPlayersInfo();
+		}
 	
 	}
 	
