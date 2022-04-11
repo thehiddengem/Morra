@@ -13,6 +13,7 @@ public class ThreadedServer implements Runnable{
 ThreadedServer(Integer port){
 	this.port = port;
 }
+private static boolean debug = false;
 private Integer port;
 private static ArrayList<ClientRunnable> cl2;
 private static ArrayList<GameLogicServer> gl2;
@@ -77,7 +78,9 @@ private Queue<ClientRunnable> gameQueue;
 			scr.start();
 			
 			while(true) {
+				if (debug ) {
 				 System.out.println("Pairing up Players loop...");
+				}
 				pairUpPlayers();
 				
 				//If there IS player's waiting to play, wait 2 seconds, else wait 5
@@ -153,6 +156,7 @@ private Queue<ClientRunnable> gameQueue;
 	// Only classes NESTED inside ThreadedServer below this point----------------------------------------------> These classes can use ThreadedServers's datamembers and cuntions
 	class GameLogicServer implements Runnable{
 		boolean stillPlaying = true;
+		Integer pointsToWin = 5;
 		ArrayList<ClientRunnable> clientList;
 		MorraInfo serverDB;
 		MorraInfo morraP1;
@@ -164,6 +168,8 @@ private Queue<ClientRunnable> gameQueue;
 			this.p2 = p2;
 			this.morraP1 = p1.mi;
 			this.morraP2 = p2.mi;
+			p1.inGame = true;
+			p2.inGame = false;
 		}
 		
 		@Override
@@ -179,6 +185,12 @@ private Queue<ClientRunnable> gameQueue;
 					if (!playersConnected()) {
 						//Cleanup Code
 						
+						//Case: Both players quit. Remove them from ArrayList, and return
+						if (p1.connection.isClosed() && p2.connection.isClosed()) {
+							removePlayerFromList(p1);
+							removePlayerFromList(p2);
+							break;
+						}
 						// remove the players that disconnected from the ArrayList
 						// set serverDb GameOverFlag to true
 						// send final serverDb with score and points to remaining player.
@@ -191,6 +203,7 @@ private Queue<ClientRunnable> gameQueue;
 					// At this point Game has either ended normally, or one of the players has quit. Ask remaining players (by checking if their indexOf in cl2 ArrayList returns anything other than -1
 					// If they want to play again. If yes, add them to gameQueue. If no, close their socketConnection, and remove from ArrayList.
 					// set stillPlayer to False to break loop. GameLogicServer run() will return, ending the thread.
+					
 					//
 				}
 				catch (Exception e) {
@@ -204,14 +217,23 @@ private Queue<ClientRunnable> gameQueue;
 		public void initGame() {
 			serverDB.setP1Points(0);
 			serverDB.setP2Points(0);
-			serverDB.setGuessing(true);
-			serverDB.setP1Fingers(-1);
-			serverDB.setP2Fingers(-1);
-			serverDB.setP1Guess(-1);
-			serverDB.setP2Guess(-1);
+			
+			initRound();
+			
 			serverDB.setTwoPlayers(true);
 			serverDB.setWinner(-1);
 			
+			serverDB.setPlayerString("Starting Game! First to " + pointsToWin + "wins!");
+			
+		}
+		
+		public void sendPacketBoth() throws IOException {
+			if (playersConnected()) {
+				serverDB.setpNum(1);
+				p1.out.writeObject(serverDB);
+				serverDB.setpNum(2);
+				p2.out.writeObject(serverDB);
+			}
 		}
 		
 		public boolean playersConnected() {
@@ -220,18 +242,49 @@ private Queue<ClientRunnable> gameQueue;
 			}
 			return true;
 		}
+		
+		public void removePlayerFromList(ClientRunnable client) {
+			if (client == null) {
+					System.out.println("Error: removePlayerFromList attempted to remove a null client!");
+					return;
+			}
+			int i = cl2.indexOf(client);
+			if (i != -1) {
+				cl2.remove(i);
+			}
+		}
+		public void initRound() {
+			serverDB.setGuessing(true);
+			
+			serverDB.setP1Fingers(-1);
+			serverDB.setP2Fingers(-1);
+			
+			serverDB.setP1Guess(-1);
+			serverDB.setP2Guess(-1);
+			
+		}
+		public boolean playersHaveAnswered() {
+			return (serverDB.getP1Fingers() > -1 && serverDB.getP2Fingers() > -1 &&  serverDB.getP1Guess() > -1 &&  serverDB.getP2Guess() > -1);
+		}
 
 		public void updateGameState() {
+			if (debug) {
 			System.out.println("Game in session! with players:" + "Player:" + p1.count + " and Player: " + p2.count);
+			}
 
 			 try {
-				// Set serverDB p1 guess fingers = p1.mi guess fingers
-				// Set serverDb p2 guess fingers = p2.mi guess fingers
+				 serverDB.setP1Fingers(p1.mi.getP1Fingers());
+				 serverDB.setP2Fingers(p1.mi.getP1Fingers());
+				 serverDB.setP1Guess(p1.mi.getP1Guess());
+				 serverDB.setP1Guess(p1.mi.getP2Guess());
+				 
 				// Do calculations to update p1 points and p2 points
 				// set serverDb yourNumber to 1;
-				p1.out.writeObject(serverDB);
-				// set serverDb yourNumber to 2;
-				p2.out.writeObject(serverDB);
+				 if (playersHaveAnswered()) {
+					 sendPacketBoth();
+					 initRound();
+					 
+				 }
 				// If player disconnects, the cleanupcode in GameServer's run() should take care of the rest.
 				// If player doesn't want to play again have them send playagain to false. Code will compare p1.mi.playagain to p2.mi.playagain
 			} catch (IOException e) {
