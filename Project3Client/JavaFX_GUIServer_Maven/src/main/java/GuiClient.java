@@ -4,6 +4,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
@@ -47,6 +48,7 @@ public class GuiClient extends Application {
 	Button quit;
 	Pane mainPane;
 	Scene main;
+	Scene secretScene;
 	Text player1ScoreText;
 	Text player2ScoreText;
 	Text opponentPlay;
@@ -56,6 +58,7 @@ public class GuiClient extends Application {
 	Text player1EndGame;
 	Text player2EndGame;
 	Pane endPane;
+	Stage window;
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -66,6 +69,7 @@ public class GuiClient extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
+		window =primaryStage;
 		primaryStage.setTitle("Connect to Morra Server");
 
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
@@ -79,9 +83,9 @@ public class GuiClient extends Application {
 		// set up start screen:
 		portBox = new TextField();
 
-		// prevent user from being able to enter more than 4 characters for port
+		// no more that 5 for port
 		portBox.setTextFormatter(new TextFormatter<String>(change ->
-				change.getControlNewText().length() <= 4 ? change : null));
+				change.getControlNewText().length() <= 5 ? change : null));
 
 		// textbox for entering port
 		portText = new Text("Enter a port:");
@@ -133,6 +137,7 @@ public class GuiClient extends Application {
 		answerBox = new TextField();
 
 		quit = new Button("Quit");
+		Button playAgain = new Button("Play Again");
 
 		submitButton = new Button("Submit guess");
 		//submitButton.setOnAction(e->{clientConnection.send(answerBox.getText()); answerBox.clear();});
@@ -154,22 +159,46 @@ public class GuiClient extends Application {
 		player1ScoreText.setFont(Font.font ("Verdana", 20));
 		player1ScoreText.setStyle("-fx-font-weight: bold");
 		player1ScoreText.setFill(Color.INDIGO);
-
-		player2ScoreText = new Text("Player 2 score: " + player2Score);
-		player2ScoreText.setFont(Font.font ("Verdana", 20));
-		player2ScoreText.setStyle("-fx-font-weight: bold");
-		player2ScoreText.setFill(Color.INDIGO);
-
+		
 		opponentPlay = new Text("Opponent played:");
 		opponentPlay.setFont(Font.font ("Verdana", 20));
 		opponentPlay.setStyle("-fx-font-weight: bold");
 		opponentPlay.setFill(Color.INDIGO);
 
+		player2ScoreText = new Text("Player 2 score: " + player2Score);
+		player2ScoreText.setFont(Font.font ("Verdana", 20));
+		player2ScoreText.setStyle("-fx-font-weight: bold");
+		player2ScoreText.setFill(Color.INDIGO);
+		
+		Label label1= new Label("Secret scene=)");
+		Button secret =new Button("Pressss me");
+		secret.setOnAction(e->window.setScene(secretScene));
+		
+		VBox layout1 = new VBox(20);
+		layout1.getChildren().addAll(label1,secret);
+		main = new Scene(layout1, 200,200);
+		
+		Button back =new Button("This scene sucks, close me");
+		back.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				System.exit(0);
+			}
+		});
 
-		mainPane.getChildren().addAll(answerBox, submitButton, listItems2, guessImages, player1ScoreText, player2ScoreText, opponentPlay, quit);
+		StackPane layout2 = new StackPane();
+		layout2.getChildren().add(back);
+		secretScene =new Scene(layout2, 600,300);
+		//window.setScene(startScene);
+		window.show();
+
+
+		mainPane.getChildren().addAll(answerBox, submitButton, listItems2, guessImages, player1ScoreText, player2ScoreText, opponentPlay,playAgain,secret, quit);
 		answerBox.relocate(20,170);
 		submitButton.relocate(20, 210);
-		quit.relocate(20, 250);
+		playAgain.relocate(20, 240);
+		quit.relocate(20, 270);
+		secret.relocate(50, 100);
 		listItems2.relocate(700, 10);
 		guessImages.relocate(0, 380);
 		opponentPlay.relocate(5, 10);
@@ -178,6 +207,29 @@ public class GuiClient extends Application {
 
 
 		// implement clicking functionality for buttons:
+		
+		playAgain.setDisable(false);
+		playAgain.setOnAction(e->{
+			
+			quess0.setDisable(false);
+			quess1.setDisable(false);
+			quess2.setDisable(false);
+			quess4.setDisable(false);
+			quess3.setDisable(false);
+			quess5.setDisable(false);
+			
+			quess0.setVisible(true);
+			quess1.setVisible(true);
+			quess2.setVisible(true);
+			quess4.setVisible(true);
+			quess3.setVisible(true);				
+			quess5.setVisible(true);
+			
+			answerBox.clear();
+			});
+
+		
+		
 
 		// quit button
 		quit.setOnAction(new EventHandler<ActionEvent>() {
@@ -335,21 +387,15 @@ public class GuiClient extends Application {
 				int guess = Integer.parseInt(answerBox.getText());
 
 				if (guess >= 0 && guess <= 10) {
-					
-					//clientConnection.send(clientGuess);
 
 					// display opponent's pick
 					if (clientConnection.clientInfo.getpNum() == 1) {
 						System.out.println(clientConnection.clientInfo.getP2Plays());
-						//ImageView opponentPick = new ImageView(new Image("quess" + clientConnection.clientInfo.getP2Plays() , 100, 100, false, true));
-					    //mainPane.getChildren().add(opponentPick);
-					   // opponentPick.relocate(50, 40);
+		
 					}
 					else {
 						System.out.println(clientConnection.clientInfo.getP1Plays());
-						//ImageView opponentPick = new ImageView(new Image("quess" + clientConnection.clientInfo.getP1Plays(), 100, 100, false, true));
-					    //mainPane.getChildren().add(opponentPick);
-					    //opponentPick.relocate(50, 40);
+
 					}
 
 					clientConnection.send(clientGuess, guess);
@@ -375,7 +421,7 @@ public class GuiClient extends Application {
 		});
 
 		// show the start screen
-		sceneMap.put("START", new Scene(startPane, 500, 63));
+		sceneMap.put("START", new Scene(startPane, 500, 630));
 		primaryStage.setScene(sceneMap.get("START"));
 		primaryStage.show();
 	}
