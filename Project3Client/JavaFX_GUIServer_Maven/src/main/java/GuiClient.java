@@ -44,7 +44,9 @@ public class GuiClient extends Application {
 	int player2Score = 0;
 	TextField answerBox;
 	Button submitButton;
+	Button playAgain;
 	Button quit;
+	
 	Pane mainPane;
 	Scene main;
 	Text player1ScoreText;
@@ -79,9 +81,9 @@ public class GuiClient extends Application {
 		// set up start screen:
 		portBox = new TextField();
 
-		// prevent user from being able to enter more than 4 characters for port
+		// prevent user from being able to enter more than 5 characters for port
 		portBox.setTextFormatter(new TextFormatter<String>(change ->
-				change.getControlNewText().length() <= 4 ? change : null));
+				change.getControlNewText().length() <= 5 ? change : null));
 
 		// textbox for entering port
 		portText = new Text("Enter a port:");
@@ -131,6 +133,7 @@ public class GuiClient extends Application {
 		listItems2.setPrefSize(390,475);
 
 		answerBox = new TextField();
+		playAgain = new Button("Restart");
 
 		quit = new Button("Quit");
 
@@ -166,10 +169,11 @@ public class GuiClient extends Application {
 		opponentPlay.setFill(Color.INDIGO);
 
 
-		mainPane.getChildren().addAll(answerBox, submitButton, listItems2, guessImages, player1ScoreText, player2ScoreText, opponentPlay, quit);
+		mainPane.getChildren().addAll(answerBox, submitButton, listItems2, guessImages, player1ScoreText, player2ScoreText, opponentPlay,playAgain, quit);
 		answerBox.relocate(20,170);
 		submitButton.relocate(20, 210);
-		quit.relocate(20, 250);
+		playAgain.relocate(20,240);
+		quit.relocate(20, 270);
 		listItems2.relocate(700, 10);
 		guessImages.relocate(0, 380);
 		opponentPlay.relocate(5, 10);
@@ -178,7 +182,8 @@ public class GuiClient extends Application {
 
 
 		// implement clicking functionality for buttons:
-
+		
+		//reset button
 		// quit button
 		quit.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
@@ -186,6 +191,29 @@ public class GuiClient extends Application {
 				System.exit(0);
 			}
 		});
+
+		// quit button
+		playAgain.setDisable(false);
+		playAgain.setOnAction(e->{
+			
+			quess0.setDisable(false);
+			quess1.setDisable(false);
+			quess2.setDisable(false);
+			quess4.setDisable(false);
+			quess3.setDisable(false);
+			quess5.setDisable(false);
+			
+			quess0.setVisible(true);
+			quess1.setVisible(true);
+			quess2.setVisible(true);
+			quess4.setVisible(true);
+			quess3.setVisible(true);				
+			quess5.setVisible(true);
+			
+				
+			clientGuess ="";
+			});
+
 
 		// "Let's play!" button
 		startButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -373,7 +401,7 @@ public class GuiClient extends Application {
 		});
 
 		// show the start screen
-		sceneMap.put("START", new Scene(startPane, 500, 63));
+		sceneMap.put("START", new Scene(startPane, 500, 630));
 		primaryStage.setScene(sceneMap.get("START"));
 		primaryStage.show();
 	}
