@@ -5,9 +5,23 @@ public class MorraInfo implements Serializable{
 
     private int p1Points; //points for player 1
     private int p2Points; //points for player 2
+    
+    // Wont be used. Kept it here in-case your code depends on it so it doesn't break.
     private String p1Plays; //player 1 fingers and guess
     private String p2Plays; //player 2 plays fingers and guess
+    
+    private int p1Guess;
+    private int p2Guess;
+    
+    private int p1Fingers;
+    private int p2Fingers;
+    
     private int yourNumber; //tells which player they are
+    
+    private int winner;
+    public boolean playAgain;
+    public boolean gameOver;
+    
     private String playerString;
     private boolean twoPlayers;  //returns true if has 2 clients connected
     private boolean guessing;
@@ -85,5 +99,51 @@ public class MorraInfo implements Serializable{
         }
         return 0;
     }
+    
+    //  My Added Functions --------->
+    
+    public int getP1Guess() {
+        return p1Guess;
+    }
+
+    public void setP1Guess(int guess) {
+        this.p1Guess = guess;
+    }
+
+    
+    public int getP1Fingers() {
+        return p1Fingers;
+    }
+
+    public void setP1Fingers(int fingers) {
+        this.p1Fingers = fingers;
+    }
+    
+    //
+    public int getP2Guess() {
+        return p2Guess;
+    }
+
+    public void setP2Guess(int guess) {
+        this.p2Guess = guess;
+    }
+
+    
+    public int getP2Fingers() {
+        return p2Fingers;
+    }
+
+    public void setP2Fingers(int fingers) {
+        this.p2Fingers = fingers;
+    }
+    
+    public void setWinner(int winner) {
+    	this.winner = winner;
+    }
+    
+    public int getWinner() {
+    	return this.winner;
+    }
+
 
 }

@@ -44,15 +44,13 @@ public class GuiClient extends Application {
 	int player2Score = 0;
 	TextField answerBox;
 	Button submitButton;
-	Button playAgain;
 	Button quit;
-	
 	Pane mainPane;
 	Scene main;
 	Text player1ScoreText;
 	Text player2ScoreText;
 	Text opponentPlay;
-	String clientGuess;
+	int clientGuess = -1;
 	
 	//End scene
 	Text player1EndGame;
@@ -81,9 +79,9 @@ public class GuiClient extends Application {
 		// set up start screen:
 		portBox = new TextField();
 
-		// prevent user from being able to enter more than 5 characters for port
+		// prevent user from being able to enter more than 4 characters for port
 		portBox.setTextFormatter(new TextFormatter<String>(change ->
-				change.getControlNewText().length() <= 5 ? change : null));
+				change.getControlNewText().length() <= 4 ? change : null));
 
 		// textbox for entering port
 		portText = new Text("Enter a port:");
@@ -133,12 +131,11 @@ public class GuiClient extends Application {
 		listItems2.setPrefSize(390,475);
 
 		answerBox = new TextField();
-		playAgain = new Button("Restart");
 
 		quit = new Button("Quit");
 
 		submitButton = new Button("Submit guess");
-		submitButton.setOnAction(e->{clientConnection.send(answerBox.getText()); answerBox.clear();});
+		//submitButton.setOnAction(e->{clientConnection.send(answerBox.getText()); answerBox.clear();});
 
 		mainPane = new Pane();
 		mainPane.setBackground(new Background(new BackgroundImage(new Image("forest.png", 1100, 495, false,true), BackgroundRepeat.REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT,  BackgroundSize.DEFAULT)));
@@ -169,11 +166,10 @@ public class GuiClient extends Application {
 		opponentPlay.setFill(Color.INDIGO);
 
 
-		mainPane.getChildren().addAll(answerBox, submitButton, listItems2, guessImages, player1ScoreText, player2ScoreText, opponentPlay,playAgain, quit);
+		mainPane.getChildren().addAll(answerBox, submitButton, listItems2, guessImages, player1ScoreText, player2ScoreText, opponentPlay, quit);
 		answerBox.relocate(20,170);
 		submitButton.relocate(20, 210);
-		playAgain.relocate(20,240);
-		quit.relocate(20, 270);
+		quit.relocate(20, 250);
 		listItems2.relocate(700, 10);
 		guessImages.relocate(0, 380);
 		opponentPlay.relocate(5, 10);
@@ -182,8 +178,7 @@ public class GuiClient extends Application {
 
 
 		// implement clicking functionality for buttons:
-		
-		//reset button
+
 		// quit button
 		quit.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
@@ -191,29 +186,6 @@ public class GuiClient extends Application {
 				System.exit(0);
 			}
 		});
-
-		// quit button
-		playAgain.setDisable(false);
-		playAgain.setOnAction(e->{
-			
-			quess0.setDisable(false);
-			quess1.setDisable(false);
-			quess2.setDisable(false);
-			quess4.setDisable(false);
-			quess3.setDisable(false);
-			quess5.setDisable(false);
-			
-			quess0.setVisible(true);
-			quess1.setVisible(true);
-			quess2.setVisible(true);
-			quess4.setVisible(true);
-			quess3.setVisible(true);				
-			quess5.setVisible(true);
-			
-				
-			clientGuess ="";
-			});
-
 
 		// "Let's play!" button
 		startButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -249,7 +221,7 @@ public class GuiClient extends Application {
 				quess3.setVisible(false);				
 				quess5.setVisible(false);
 
-				clientGuess = "0";
+				clientGuess = 0;
 			}
 		});
 
@@ -268,7 +240,7 @@ public class GuiClient extends Application {
 				quess3.setVisible(false);				
 				quess5.setVisible(false);
 
-				clientGuess = "1";
+				clientGuess = 1;
 
 			}
 		});
@@ -289,7 +261,7 @@ public class GuiClient extends Application {
 				quess5.setVisible(false);
 
 
-				clientGuess = "2";
+				clientGuess = 2;
 
 			}
 		});
@@ -311,7 +283,7 @@ public class GuiClient extends Application {
 				quess5.setVisible(false);
 
 
-				clientGuess = "3";
+				clientGuess = 3;
 
 			}
 		});
@@ -331,7 +303,7 @@ public class GuiClient extends Application {
 				quess3.setVisible(false);				
 				quess5.setVisible(false);
 
-				clientGuess = "4";
+				clientGuess = 4;
 			}
 		});
 
@@ -350,7 +322,7 @@ public class GuiClient extends Application {
 				quess3.setVisible(false);
 				quess4.setVisible(false);
 
-				clientGuess = "5";
+				clientGuess = 5;
 
 			}
 		});
@@ -360,25 +332,27 @@ public class GuiClient extends Application {
 			@Override
 			public void handle(ActionEvent event) {
 				// if guess was valid, then handle round end actions
-				if (Integer.parseInt(answerBox.getText()) >= 1 || Integer.parseInt(answerBox.getText()) <= 10) {
-					// send number option and guess to server
-					clientConnection.send(clientGuess);
+				int guess = Integer.parseInt(answerBox.getText());
+
+				if (guess >= 0 && guess <= 10) {
+					
+					//clientConnection.send(clientGuess);
 
 					// display opponent's pick
 					if (clientConnection.clientInfo.getpNum() == 1) {
 						System.out.println(clientConnection.clientInfo.getP2Plays());
-						ImageView opponentPick = new ImageView(new Image("quess" + clientConnection.clientInfo.getP2Plays() , 100, 100, false, true));
-					    mainPane.getChildren().add(opponentPick);
-					    opponentPick.relocate(50, 40);
+						//ImageView opponentPick = new ImageView(new Image("quess" + clientConnection.clientInfo.getP2Plays() , 100, 100, false, true));
+					    //mainPane.getChildren().add(opponentPick);
+					   // opponentPick.relocate(50, 40);
 					}
 					else {
 						System.out.println(clientConnection.clientInfo.getP1Plays());
-						ImageView opponentPick = new ImageView(new Image("quess" + clientConnection.clientInfo.getP1Plays(), 100, 100, false, true));
-					    mainPane.getChildren().add(opponentPick);
-					    opponentPick.relocate(50, 40);
+						//ImageView opponentPick = new ImageView(new Image("quess" + clientConnection.clientInfo.getP1Plays(), 100, 100, false, true));
+					    //mainPane.getChildren().add(opponentPick);
+					    //opponentPick.relocate(50, 40);
 					}
 
-					clientConnection.send(answerBox.getText());
+					clientConnection.send(clientGuess, guess);
 
 					// clear textbox and show numbers
 					answerBox.clear();
@@ -401,7 +375,7 @@ public class GuiClient extends Application {
 		});
 
 		// show the start screen
-		sceneMap.put("START", new Scene(startPane, 500, 630));
+		sceneMap.put("START", new Scene(startPane, 500, 63));
 		primaryStage.setScene(sceneMap.get("START"));
 		primaryStage.show();
 	}

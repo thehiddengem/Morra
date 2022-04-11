@@ -56,13 +56,15 @@ public class Client extends Thread{
     }
 
     //sends the morraInfo class to the Server
-    public void send(String data) {
+    public void send(int fingers, int guess) {
         try {
             if(clientInfo.getpNum() == 1){
-                clientInfo.setP1Plays(data);
+                clientInfo.setP1Guess(guess);
+                clientInfo.setP1Fingers(fingers);
             }
             else if(clientInfo.getpNum() == 2){
-                clientInfo.setP2Plays(data);
+                clientInfo.setP2Guess(guess);
+                clientInfo.setP2Fingers(fingers);
             }
             out.writeObject(clientInfo);
             out.reset();
