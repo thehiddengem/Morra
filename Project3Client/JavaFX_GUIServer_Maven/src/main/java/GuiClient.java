@@ -50,7 +50,7 @@ public class GuiClient extends Application {
 	Text player1ScoreText;
 	Text player2ScoreText;
 	Text opponentPlay;
-	int clientGuess = -1;
+	int clientGuess = 0;
 	
 	//End scene
 	Text player1EndGame;
