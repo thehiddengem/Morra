@@ -198,12 +198,12 @@ private Queue<ClientRunnable> gameQueue;
 							removePlayerFromList(p1);
 							serverDB.setWinner(2);
 							serverDB.setPlayerString("Your Opponent has left the game...");
-							sendPacketOne(p2);
+							sendPacketOne(p2,2);
 						} else if (p2.connection.isClosed()){
 							removePlayerFromList(p2);
 							serverDB.setWinner(1);
 							serverDB.setPlayerString("Your Opponent has left the game...");
-							sendPacketOne(p1);
+							sendPacketOne(p1,1555);
 						}
 						stillPlaying = false;
 					}
@@ -218,38 +218,38 @@ private Queue<ClientRunnable> gameQueue;
 					}
 					
 					if (stillPlaying) {
-					updateGameState();
-					String s = "";
-					if (playersHaveAnswered() == true) {
-						int totalFingers = serverDB.getP1Fingers() + serverDB.getP2Fingers();
+						updateGameState();
+						String s = "Results :";
+						if (playersHaveAnswered() == true) {
+							System.out.println("Both players have answered");
+							int totalFingers = serverDB.getP1Fingers() + serverDB.getP2Fingers();
 
-						if (serverDB.getP1Guess() == totalFingers && serverDB.getP2Guess() == totalFingers) {
-							s +="Both players guessed the correct fingers, no points awarded!";
-						}
-						else if (totalFingers == serverDB.getP1Fingers()) {
-							int points = serverDB.getP1Points();
-							points += 1;
-							serverDB.setP1Points(points);
-							s += "Player 1 won the point!";
+							if (serverDB.getP1Guess() == totalFingers && serverDB.getP2Guess() == totalFingers) {
+								s +="Both players guessed the correct fingers, no points awarded!";
+							} else if (totalFingers == serverDB.getP1Guess()) {
+									int points = serverDB.getP1Points();
+									points += 1;
+									serverDB.setP1Points(points);
+									s += "Player 1 won the point!";
 							
-						} else if (totalFingers == serverDB.getP2Fingers()) {
-							int points = serverDB.getP2Points();
-							points += 1;
-							serverDB.setP2Points(points);
-							s +="Player 2 won the point!";
+							}  else if (totalFingers == serverDB.getP2Guess()) {
+									int points = serverDB.getP2Points();
+									points += 1;
+									serverDB.setP2Points(points);
+									s +="Player 2 won the point!";
 							
-						}
-						else {
-							s += "Neither player guessed the correct amount of fingers";
+							}  else {
+									s += "Neither player guessed the correct amount of fingers";
 						}
 						
-						String sP1 = s + " : Opponents fingers: " + serverDB.getP2Fingers() + "guess: " + serverDB.getP2Guess();
-						String sP2 = s + " : Opponents fingers: " + serverDB.getP1Fingers() + "guess: " + serverDB.getP1Guess();
 						
-						serverDB.setPlayerString(sP1);
-						sendPacketOne(p1);
-						serverDB.setPlayerString(sP2);
-						sendPacketOne(p2);
+						initRound();
+						serverDB.setPlayerString(s);
+						sendPacketOne(p1, 1);
+						serverDB.setPlayerString(s);
+						sendPacketOne(p2, 2);
+						 System.out.println("Current Game Points: Client " + p1.count + " "+ serverDB.getP1Points() +  " Client " +p2.count + " " + serverDB.getP2Points());
+						 System.out.println(serverDB.getPlayerString());
 						
 					}
 					
@@ -267,7 +267,28 @@ private Queue<ClientRunnable> gameQueue;
 					break;
 				}
 			}
-			System.out.println("Someone won the game!");
+			if (serverDB.getWinner() == 1) {
+				System.out.println("Client " + p1.count + "has beaten " + " Client" + p2.count);
+				serverDB.setPlayerString("Winner!");
+				sendPacketOne(p1, 1);
+				serverDB.setPlayerString("Loser!");
+				sendPacketOne(p2, 2);
+			} else {
+				System.out.println("Client " + p2.count + "has beaten " + " Client" + p1.count);
+				serverDB.setPlayerString("Winner!");
+				sendPacketOne(p2, 2);
+				serverDB.setPlayerString("Loser!");
+				sendPacketOne(p1, 1);
+			}
+			System.out.println("Replay has not been implemented yet. When the game ends, remaining players are put back into the queue");
+			if (cl2.indexOf(p1) != -1) {
+				p1.inGame = false;
+				gameQueue.add(p1);
+			}
+			if (cl2.indexOf(p2) != -1) {
+				p2.inGame = false;
+				gameQueue.add(p2);
+			}
 			// if GameOver {
 			// At this point Game has either ended normally, or one of the players has quit. Ask remaining players (by checking if their indexOf in cl2 ArrayList returns anything other than -1
 			// If they want to play again. If yes, add them to gameQueue. If no, close their socketConnection, and remove from ArrayList.
@@ -304,13 +325,7 @@ private Queue<ClientRunnable> gameQueue;
 			System.out.println("Game in session! with players:" + "Player:" + p1.count + " and Player: " + p2.count);
 			}
 
-			     try {
-					p1.mi = (MorraInfo) p1.in.readObject();
-					p2.mi = (MorraInfo) p1.in.readObject();
-				} catch (ClassNotFoundException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+
 				 morraP1 = p1.mi;
 				 morraP2 = p2.mi;
 				 serverDB.setP1Fingers(morraP1.getP1Fingers());
@@ -318,26 +333,40 @@ private Queue<ClientRunnable> gameQueue;
 				 serverDB.setP1Guess(morraP1.getP1Guess());
 				 serverDB.setP2Guess(morraP2.getP2Guess());
 				 String s = "";
-				 s += serverDB.getP1Fingers() + " " + serverDB.getP1Guess() + " " +  serverDB.getP2Fingers() + " " + serverDB.getP2Guess() ;
-
-
+				 s += " F1 :" +  serverDB.getP1Fingers() + " " + " G1 " + serverDB.getP1Guess() + " " + " F2 " + serverDB.getP2Fingers() + " " + " G2 " +serverDB.getP2Guess() ;
+				 if (debug) {
+				 System.out.println("Current Game Points: Player 1:" + serverDB.getP1Points() + "Player 2: " + serverDB.getP2Points());
 				 System.out.println(s);
+				 }
 				 
 
 		}
 		
 		
-		public void sendPacketOne(ClientRunnable player) throws IOException {
-			if (player == p1) {
+		public void sendPacketOne(ClientRunnable player, int pnum)  {
+			p1.mi = serverDB;
+			p2.mi = serverDB;
+			if (pnum == 1) {
 				serverDB.setpNum(1);
 			}
-			else {
+			else if (pnum == 2) {
 				serverDB.setpNum(2);
 			}
-			player.out.writeObject(serverDB);
+			else {
+				System.out.println("Not a valid player number");
+				return;
+			}
+			try {
+				player.out.writeObject(serverDB);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		public void sendPacketBoth() throws IOException {
+			p1.mi = serverDB;
+			p2.mi = serverDB;
+			
 			if (playersConnected() == true) {
 				serverDB.setpNum(1);
 				p1.out.writeObject(serverDB);
@@ -407,8 +436,9 @@ private Queue<ClientRunnable> gameQueue;
 			
 			 while(true) {
 				    try {
-				    	mi = (MorraInfo) in.readObject();
+				    	//55
 				    	//String data = in.readObject().toString();
+						mi = (MorraInfo) in.readObject();
 				    	System.out.println("Server received MorraObject: " +  " from client: " + count);
 				    	//out.writeObject(mi);
 				    	//out.writeObject(data.toUpperCase());
