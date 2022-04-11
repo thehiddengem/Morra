@@ -131,6 +131,7 @@ private Queue<ClientRunnable> gameQueue;
 			p2.mi.setpNum(2);
 			GameLogicServer game = new GameLogicServer(p1, p2);
 			Thread gameThread = new Thread(game);
+			System.out.println("Client " + p1.count + "is playing against " + " Client" + p2.count);
 			gameThread.start();
 		}
 	}
