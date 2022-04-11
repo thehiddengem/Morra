@@ -3,18 +3,18 @@ import java.io.Serializable;
 
 public class MorraInfo implements Serializable{
 
-    private int p1Points; //points for player 1
-    private int p2Points; //points for player 2
+    private int p1Points = 0; //points for player 1
+    private int p2Points = 0; //points for player 2
     
     // Wont be used. Kept it here in-case your code depends on it so it doesn't break.
     private String p1Plays; //player 1 fingers and guess
     private String p2Plays; //player 2 plays fingers and guess
     
-    private int p1Guess;
-    private int p2Guess;
+    private int p1Guess = -1;
+    private int p2Guess = -1;
     
-    private int p1Fingers;
-    private int p2Fingers;
+    private int p1Fingers = -1;
+    private int p2Fingers = -1;
     
     private int yourNumber; //tells which player they are
     

@@ -169,7 +169,7 @@ private Queue<ClientRunnable> gameQueue;
 			this.morraP1 = p1.mi;
 			this.morraP2 = p2.mi;
 			p1.inGame = true;
-			p2.inGame = false;
+			p2.inGame = true;
 		}
 		
 		@Override
@@ -186,6 +186,7 @@ private Queue<ClientRunnable> gameQueue;
 			while(stillPlaying) {
 				try {
 					if (playersConnected() == false) {
+						System.out.println("Error: A player has disconnected");
 						//Cleanup Code
 						
 						//Case: Both players quit. Remove them from ArrayList, and return
@@ -205,9 +206,6 @@ private Queue<ClientRunnable> gameQueue;
 							sendPacketOne(p1);
 						}
 						stillPlaying = false;
-						// remove the players that disconnected from the ArrayList
-						// set serverDb GameOverFlag to true
-						// send final serverDb with score and points to remaining player.
 					}
 					
 					if (serverDB.getP1Points() == pointsToWin) {
@@ -218,8 +216,46 @@ private Queue<ClientRunnable> gameQueue;
 						serverDB.setWinner(2);
 						break;
 					}
+					
 					if (stillPlaying) {
 					updateGameState();
+					String s = "";
+					if (playersHaveAnswered() == true) {
+						int totalFingers = serverDB.getP1Fingers() + serverDB.getP2Fingers();
+
+						if (serverDB.getP1Guess() == totalFingers && serverDB.getP2Guess() == totalFingers) {
+							s +="Both players guessed the correct fingers, no points awarded!";
+						}
+						else if (totalFingers == serverDB.getP1Fingers()) {
+							int points = serverDB.getP1Points();
+							points += 1;
+							serverDB.setP1Points(points);
+							s += "Player 1 won the point!";
+							
+						} else if (totalFingers == serverDB.getP2Fingers()) {
+							int points = serverDB.getP2Points();
+							points += 1;
+							serverDB.setP2Points(points);
+							s +="Player 2 won the point!";
+							
+						}
+						else {
+							s += "Neither player guessed the correct amount of fingers";
+						}
+						
+						String sP1 = s + " : Opponents fingers: " + serverDB.getP2Fingers() + "guess: " + serverDB.getP2Guess();
+						String sP2 = s + " : Opponents fingers: " + serverDB.getP1Fingers() + "guess: " + serverDB.getP1Guess();
+						
+						serverDB.setPlayerString(sP1);
+						sendPacketOne(p1);
+						serverDB.setPlayerString(sP2);
+						sendPacketOne(p2);
+						
+					}
+					
+
+					
+					
 					}
 					
 					
@@ -231,7 +267,7 @@ private Queue<ClientRunnable> gameQueue;
 					break;
 				}
 			}
-			
+			System.out.println("Someone won the game!");
 			// if GameOver {
 			// At this point Game has either ended normally, or one of the players has quit. Ask remaining players (by checking if their indexOf in cl2 ArrayList returns anything other than -1
 			// If they want to play again. If yes, add them to gameQueue. If no, close their socketConnection, and remove from ArrayList.
@@ -239,6 +275,7 @@ private Queue<ClientRunnable> gameQueue;
 			
 			
 		}
+
 		public void initGame() throws IOException {
 			serverDB.setP1Points(0);
 			serverDB.setP2Points(0);
@@ -267,7 +304,13 @@ private Queue<ClientRunnable> gameQueue;
 			System.out.println("Game in session! with players:" + "Player:" + p1.count + " and Player: " + p2.count);
 			}
 
-			 try {
+			     try {
+					p1.mi = (MorraInfo) p1.in.readObject();
+					p2.mi = (MorraInfo) p1.in.readObject();
+				} catch (ClassNotFoundException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				 morraP1 = p1.mi;
 				 morraP2 = p2.mi;
 				 serverDB.setP1Fingers(morraP1.getP1Fingers());
@@ -275,27 +318,14 @@ private Queue<ClientRunnable> gameQueue;
 				 serverDB.setP1Guess(morraP1.getP1Guess());
 				 serverDB.setP2Guess(morraP2.getP2Guess());
 				 String s = "";
-				 s += serverDB.getP1Fingers();
-				 s += serverDB.getP1Guess();
-				 s += serverDB.getP2Fingers();
-				 s += serverDB.getP2Guess();
+				 s += serverDB.getP1Fingers() + " " + serverDB.getP1Guess() + " " +  serverDB.getP2Fingers() + " " + serverDB.getP2Guess() ;
+
+
 				 System.out.println(s);
 				 
-				// Do calculations to update p1 points and p2 points
-				// set serverDb yourNumber to 1;
-				 if (playersHaveAnswered()) {
-					 sendPacketBoth();
-					 initRound();
-					 
-				 }
-				// If player disconnects, the cleanupcode in GameServer's run() should take care of the rest.
-				// If player doesn't want to play again have them send playagain to false. Code will compare p1.mi.playagain to p2.mi.playagain
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 
 		}
+		
 		
 		public void sendPacketOne(ClientRunnable player) throws IOException {
 			if (player == p1) {
@@ -338,7 +368,7 @@ private Queue<ClientRunnable> gameQueue;
 		}
 		
 		public boolean playersHaveAnswered() {
-			return (serverDB.getP1Fingers() > -1 && serverDB.getP2Fingers() > -1 &&  serverDB.getP1Guess() > -1 &&  serverDB.getP2Guess() > -1);
+			return (serverDB.getP1Fingers() != -1 && serverDB.getP2Fingers() != -1 &&  serverDB.getP1Guess() != -1 &&  serverDB.getP2Guess() != -1);
 		}
 
 
