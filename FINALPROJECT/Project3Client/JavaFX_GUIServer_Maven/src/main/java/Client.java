@@ -69,14 +69,15 @@ public class Client extends Thread{
     }
     
     //sends the morraInfo class with the message and the set of receivers
-    public void sendMultiMessage( String message, int[] numbers)  {
+    public void sendMultiMessage( String message, int[] numbers,int clientNumber)  {
         try {
+        	clientInfo.clientNumber = clientNumber;
         	clientInfo.message = message;
         	for (int v : numbers) {
         	    clientInfo.receivers.add(v);
         	}
 
-        	System.out.println(clientInfo.receivers);
+        	//System.out.println(clientInfo.receivers);
         	clientInfo.messageType = 1;
             out.writeObject(clientInfo);
             out.reset();
