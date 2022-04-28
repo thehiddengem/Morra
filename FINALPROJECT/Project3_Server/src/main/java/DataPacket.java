@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 
@@ -11,12 +12,16 @@ public class DataPacket implements Serializable{
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	
+	DataPacket() {
+		receivers = new HashSet<Integer>();
+		onlineClients = new HashSet<Integer>();
+	}
 	// server will tell client, what their number is
 	int clientNumber;
 	Set<Integer> receivers;
+	Set<Integer> onlineClients;
 	String message;
-	// 0 = broadcast, 1 = multi message, 2 = update available clients
+	// 0 = broadcast, 1 = multi message, 2 = update available clients, 3 = welcome packet
 	int messageType;
 	
 
