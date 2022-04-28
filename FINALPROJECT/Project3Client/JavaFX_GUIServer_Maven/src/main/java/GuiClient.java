@@ -18,7 +18,11 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 import static javafx.application.Application.launch;
 
@@ -33,6 +37,7 @@ public class GuiClient extends Application {
 		text_ClientID.setText(s);
 	}
 	static int clientNumber = -1;
+	Set<Integer> receivers2;
 	Client clientConnection;
 	HashMap<String, Scene> sceneMap = new HashMap<>();
 	ListView<String> listItems2;
@@ -49,7 +54,10 @@ public class GuiClient extends Application {
 	int player1Score = 0;
 	int player2Score = 0;
 	TextField answerBox;
+	
 	Button sendBroadcastButton;
+	Button multiMessageButton;
+	
 	Button quit;
 	Pane mainPane;
 	Scene main;
@@ -144,6 +152,7 @@ public class GuiClient extends Application {
 		Button playAgain = new Button("Play Again");
 
 		sendBroadcastButton = new Button("Send Broadcast");
+		multiMessageButton = new Button("Send multi-message");
 		//submitButton.setOnAction(e->{clientConnection.send(answerBox.getText()); answerBox.clear();});
 
 		mainPane = new Pane();
@@ -197,9 +206,10 @@ public class GuiClient extends Application {
 		window.show();
 
 
-		mainPane.getChildren().addAll(answerBox, sendBroadcastButton, listItems2, guessImages, player1ScoreText, player2ScoreText, text_ClientID,playAgain,secret, quit);
+		mainPane.getChildren().addAll(answerBox, sendBroadcastButton, multiMessageButton, listItems2, guessImages, player1ScoreText, player2ScoreText, text_ClientID,playAgain,secret, quit);
 		answerBox.relocate(20,170);
 		sendBroadcastButton.relocate(20, 210);
+		multiMessageButton.relocate(150, 210);
 		playAgain.relocate(20, 240);
 		quit.relocate(20, 270);
 		secret.relocate(50, 100);
@@ -407,7 +417,7 @@ public class GuiClient extends Application {
 			}
 		});
 
-		// submit guess button:
+		// submit guess button to broadcast for all clients:
 		sendBroadcastButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
@@ -439,7 +449,60 @@ public class GuiClient extends Application {
 				}
 			}
 		});
+		
+		// submit guess button to send multi-message
+		// add to the set of receivers 
+		multiMessageButton.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				// if guess was valid, then handle round end actions
+				String message = (answerBox.getText());
 
+				if (message.length() > 1) {
+					String[] arrOfStr = message.split("@", -10);  // get user names (1, 2...n)
+					//System.out.println(arrOfStr[0]); get only the message
+					//System.out.println(arrOfStr[1]);  get first client #
+				   String withoutClientNumber = arrOfStr[0];
+				   int index =0;
+
+				   for (int i = index; i < arrOfStr.length-1; i++) {  //remove text and leave receivers #(1,2,3..)
+					   arrOfStr[i] = arrOfStr[i + 1];
+					}
+				   
+				   // Now add senders to Set<Integers> receivers
+				   String[] onlyClients= Arrays.copyOf(arrOfStr, arrOfStr.length-1);  // Delete duplicate from the array
+				   // Change Array of string to array of integers
+				   int[] numbers = new int[onlyClients.length];
+				   for(int i = 0;i < onlyClients.length;i++)
+				   {
+					  
+				      numbers[i] = Integer.parseInt(onlyClients[i].trim()); //Remove the trailing space
+				   }
+				   
+				   
+
+					clientConnection.sendMultiMessage(withoutClientNumber, numbers);  //send the message and the set of receivers to the server
+
+					// clear textbox and show numbers
+					answerBox.clear();
+
+					quess0.setDisable(false);
+					quess1.setDisable(false);
+					quess2.setDisable(false);
+					quess3.setDisable(false);
+					quess4.setDisable(false);
+					quess5.setDisable(false);
+					
+					quess0.setVisible(true);
+					quess1.setVisible(true);
+					quess2.setVisible(true);
+					quess3.setVisible(true);
+					quess4.setVisible(true);
+					quess5.setVisible(true);
+				}
+			}
+		});
+		
 		// show the start screen
 		sceneMap.put("START", new Scene(startPane, 500, 630));
 		primaryStage.setScene(sceneMap.get("START"));
