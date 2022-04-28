@@ -14,7 +14,8 @@ public class DataPacket implements Serializable{
 	
 	// server will tell client, what their number is
 	int clientNumber;
-	Set<Integer> receivers;
+	Set<Integer> receivers;  //update receivers
+	Set<Integer> onlineClients; // every online client updates when I get the packet  
 	String message;
 	// 0 = broadcast, 1 = multi message, 2 = update available clients, 3 = welcome packet
 	int messageType;
