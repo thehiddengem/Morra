@@ -3,6 +3,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javafx.application.Platform;
@@ -47,14 +51,33 @@ public class Client extends Thread{
 
     }
 
-    //checks to see if player 1 or player 2 who and returns a value
-
 
     //sends the morraInfo class to the Server
     public void sendBroadcast( String message) {
         try {
         	clientInfo.message = message;
         	clientInfo.messageType = 0;
+            out.writeObject(clientInfo);
+            out.reset();
+            
+            // Don't think in.reset() is needed because server will do out.reset on every message
+            //in.reset();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    
+    //sends the morraInfo class with the message and the set of receivers
+    public void sendMultiMessage( String message, int[] numbers)  {
+        try {
+        	clientInfo.message = message;
+        	for (int v : numbers) {
+        	    clientInfo.receivers.add(v);
+        	}
+
+        	System.out.println(clientInfo.receivers);
+        	clientInfo.messageType = 1;
             out.writeObject(clientInfo);
             out.reset();
             
