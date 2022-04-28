@@ -478,10 +478,9 @@ public class GuiClient extends Application {
 					  
 				      numbers[i] = Integer.parseInt(onlyClients[i].trim()); //Remove the trailing space
 				   }
-				   
-				   
+				   //System.out.println(numbers[0]);
 
-					clientConnection.sendMultiMessage(withoutClientNumber, numbers);  //send the message and the set of receivers to the server
+					clientConnection.sendMultiMessage(withoutClientNumber, numbers, clientNumber);  //send the message and the set of receivers to the server
 
 					// clear textbox and show numbers
 					answerBox.clear();
