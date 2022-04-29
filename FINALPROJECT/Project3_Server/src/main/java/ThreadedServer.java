@@ -133,14 +133,13 @@ Set<Integer> availableClients;
 		availableClients.remove(c);
 	}
 	
-	private void updateClients() {
+	private  synchronized void updateClients() {
 		DataPacket temp = new DataPacket();
 		temp.messageType = 2;
 		temp.message = "Updating clients list!\n";
 		temp.onlineClients = availableClients;
 		// Sender is the server
 		temp.clientNumber = -1;
-		synchronized(this) {
 		for (ClientRunnable client : cl2) {
 			try {
 				client.out.writeObject(temp);
@@ -151,7 +150,7 @@ Set<Integer> availableClients;
 			}
 
 		}
-		}
+		
 		
 		System.out.println("Sent update packet to all clients!");
 		String log = "Update Packet: ";
@@ -303,9 +302,11 @@ Set<Integer> availableClients;
 				out = new ObjectOutputStream(connection.getOutputStream());
 				dp =  new DataPacket();
 				connection.setTcpNoDelay(true);
+				
 				dp.clientNumber = count;
 				dp.message = "Welcome to the Server... \nFetching available clients for you!";
 				dp.messageType = 3;
+				dp.onlineClients = availableClients;
 				out.writeObject(dp);
 				out.reset();
 				
