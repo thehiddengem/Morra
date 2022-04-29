@@ -216,6 +216,7 @@ Set<Integer> availableClients;
 			}
 			s += "\n";
 			s += "Used the correct format?  \"Hello World @2 @1\"\n";
+			s += "Are your targets connected to the server? \n";
 		}
 		
 		d.message = s;
