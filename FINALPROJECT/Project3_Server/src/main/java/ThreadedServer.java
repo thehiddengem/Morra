@@ -165,12 +165,20 @@ Set<Integer> availableClients;
 		
 	}
 	
-	private void multiMessage(DataPacket d) {
+	private  synchronized void multiMessage(DataPacket d) {
 		Set<Integer> r = new HashSet<Integer>();
 		Set<ClientRunnable> exist = new HashSet<>();
 		ClientRunnable origin = null;
+		
 		r = d.receivers;
-		synchronized(this) {
+		int num = r.size();
+		System.out.println("Given list of receievers: ");
+		for (int i : r) {
+			System.out.print(i);
+		}
+		System.out.println();
+		
+		
 		for (ClientRunnable client : cl2) {
 			if (r.contains(client.count)) {
 				exist.add(client);
@@ -181,8 +189,12 @@ Set<Integer> availableClients;
 			}
 		}
 
-		
-		d.message = "[Solo/Group] " + "Client " + d.clientNumber + ": " + d.message + "\n";
+		if (num == 1) {
+			d.message = "[Private] " + "Client " + d.clientNumber + ": " + d.message + "\n";
+		}
+		else {
+			d.message = "[Group] " + "Client " + d.clientNumber + ": " + d.message + "\n";
+		}
 		String s = d.message;
 
 		for (ClientRunnable client : exist) {
@@ -207,6 +219,8 @@ Set<Integer> availableClients;
 		}
 		
 		d.message = s;
+		r = null;
+		exist = null;
 		
 		try {
 			origin.out.writeObject(d);
@@ -216,7 +230,7 @@ Set<Integer> availableClients;
 			e.printStackTrace();
 		}
 	
-		}
+		
 	}
 	
 	private void broadCast(DataPacket d) {
@@ -314,7 +328,7 @@ Set<Integer> availableClients;
 				    		System.out.println("OOOOPPs...Something wrong with the socket from client: " + count +"....closing down!");
 				    		try {
 								connection.close();
-								remClient(this, this.count);
+								remClient(this, count);
 								updateClients();
 														
 							} catch (IOException e1) {
