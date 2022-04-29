@@ -247,6 +247,9 @@ public class GuiClient extends Application {
 							clientList.getItems().clear();
 							for (Integer i : d.onlineClients) {
 								String s = "Client ";
+								if (i == clientNumber) {
+									s += " (You)";
+								}
 								s += i + "\n";
 								clientList.getItems().add(s);
 							}
