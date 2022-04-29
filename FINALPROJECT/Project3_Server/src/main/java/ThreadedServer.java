@@ -1,9 +1,11 @@
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javafx.application.Platform;
@@ -17,6 +19,7 @@ private static boolean debug = false;
 private Integer port;
 static ArrayList<ClientRunnable> cl2;
 Queue<DataPacket> packetQueue;
+Set<Integer> availableClients;
 
 	
 	
@@ -39,13 +42,16 @@ Queue<DataPacket> packetQueue;
         	
         	
         	threadCheck2();
+        	
+
         	ClientRunnable cr = new ClientRunnable(mysocket.accept(), count);
         	Thread t = new Thread(cr);
         	cl2.add(cr);
         	t.start();
+        	count++;
         	
-		count++;
-        }
+        	}
+        
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -72,6 +78,7 @@ Queue<DataPacket> packetQueue;
 			
 			cl2 = new ArrayList<ClientRunnable>();
 		    packetQueue = new LinkedList<>();
+			availableClients = new HashSet<Integer>();
 			//serverCode();
 			Thread scr = new Thread(serverCodeRunnable);
 			scr.start();
@@ -106,12 +113,110 @@ Queue<DataPacket> packetQueue;
 		if (p.messageType == 0) {
 			broadCast(p);
 		}
+		else if (p.messageType == 1) {
+			multiMessage(p);
+		}
 
 		}
 	private void addPacket(DataPacket d) {
 		DataPacket temp = new DataPacket();
 		temp = d;
 		packetQueue.add(temp);
+	}
+	private synchronized void addClient(Integer c) {
+		availableClients.add(c);
+	}
+	
+	private synchronized void remClient(ClientRunnable client, Integer c) {
+		int index = cl2.indexOf(client);
+		cl2.remove(index);
+		availableClients.remove(c);
+	}
+	
+	private void updateClients() {
+		DataPacket temp = new DataPacket();
+		temp.messageType = 2;
+		temp.message = "Updating clients list!\n";
+		temp.onlineClients = availableClients;
+		// Sender is the server
+		temp.clientNumber = -1;
+		synchronized(this) {
+		for (ClientRunnable client : cl2) {
+			try {
+				client.out.writeObject(temp);
+				client.out.reset();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+		}
+		
+		System.out.println("Sent update packet to all clients!");
+		String log = "Update Packet: ";
+		for (Integer c : availableClients) {
+			log += "Client: ";
+			log += c;
+			log += " ";
+		}
+		System.out.println(log);
+		
+		
+	}
+	
+	private void multiMessage(DataPacket d) {
+		Set<Integer> r = new HashSet<Integer>();
+		Set<ClientRunnable> exist = new HashSet<>();
+		ClientRunnable origin = null;
+		r = d.receivers;
+		synchronized(this) {
+		for (ClientRunnable client : cl2) {
+			if (r.contains(client.count)) {
+				exist.add(client);
+				r.remove(client.count);
+			}
+			if (d.clientNumber == client.count) {
+				origin = client;
+			}
+		}
+
+		
+		d.message = "[Solo/Group] " + "Client " + d.clientNumber + ": " + d.message + "\n";
+		String s = d.message;
+
+		for (ClientRunnable client : exist) {
+			try {
+				//System.out.println(d.message);
+				client.out.writeObject(d);
+				client.out.reset();
+			} catch (IOException e) {
+				System.out.println("Attempt to send multimessage failed");
+			}
+		}
+		s += "\n";
+		if (r.isEmpty() == false) {
+			s += "Failures: ";
+			for (Integer i : r) {
+				
+				s += "Client ";
+				s += i + " ";
+			}
+			s += "\n";
+			s += "Used the correct format?  \"Hello World @2 @1\"\n";
+		}
+		
+		d.message = s;
+		
+		try {
+			origin.out.writeObject(d);
+			origin.out.reset();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
+		}
 	}
 	
 	private void broadCast(DataPacket d) {
@@ -149,8 +254,7 @@ Queue<DataPacket> packetQueue;
 			}
 			catch (Exception e) {
 			s += " Error adding player so string in printPlayersInfo \n";
-			}
-			
+			}	
 		}
 		System.out.println(s);
 	}
@@ -171,6 +275,9 @@ Queue<DataPacket> packetQueue;
 		ClientRunnable(Socket s, int count){
 			this.connection = s;
 			this.count = count;
+			addClient(this.count);
+			updateClients();
+
 		}
 		
 		@Override
@@ -202,20 +309,14 @@ Queue<DataPacket> packetQueue;
 				    	System.out.println("Server received datapacket: " +  " from client: " + count);
 				    	addPacket(dp);
 				    	
-				    	
-				    	//out.writeObject(mi);
-				    	//out.writeObject(data.toUpperCase());
 				    	}
 				    	catch(Exception e) {
 				    		System.out.println("OOOOPPs...Something wrong with the socket from client: " + count +"....closing down!");
 				    		try {
 								connection.close();
-								if (inGame == false) {
-									// If client disconnects, and is not in a game, removes them from priorityQueue, and arrayList.
-									int index = cl2.indexOf(this);
-									cl2.remove(index);
-								}
-								
+								remClient(this, this.count);
+								updateClients();
+														
 							} catch (IOException e1) {
 								e1.printStackTrace();
 							}
