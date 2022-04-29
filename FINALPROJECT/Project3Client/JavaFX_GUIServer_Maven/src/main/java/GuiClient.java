@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static javafx.application.Application.launch;
 
@@ -37,7 +38,8 @@ public class GuiClient extends Application {
 		text_ClientID.setText(s);
 	}
 	static int clientNumber = -1;
-	Set<Integer> receivers2;
+	static Set<Integer> onlineClients;
+	//Set<Integer> receivers2;
 	Client clientConnection;
 	HashMap<String, Scene> sceneMap = new HashMap<>();
 	ListView<String> listItems2;
@@ -59,6 +61,7 @@ public class GuiClient extends Application {
 	Button multiMessageButton;
 	ListView<String> clientList;
 	Label format;
+	String s;
 	
 	Button quit;
 	Pane mainPane;
@@ -147,9 +150,13 @@ public class GuiClient extends Application {
 		listItems2.setStyle("-fx-font-family: Verdana; -fx-font-weight: bold");
 		listItems2.setPrefSize(390,475);
 		
+		
 		clientList =new ListView<String>();
 		clientList.setStyle("-fx-font-family: Verdana; -fx-font-weight: bold");
 		clientList.setPrefSize(230,200);
+		clientList.getItems().add("Available Clients:");
+        
+		
 		
 		answerBox = new TextField();
 		format = new Label("Message @1 @2....");
@@ -211,7 +218,6 @@ public class GuiClient extends Application {
 		playAgain.setDisable(false);
 		playAgain.setOnAction(e->{
 			
-			
 			answerBox.clear();
 			});
 
@@ -230,6 +236,7 @@ public class GuiClient extends Application {
 		startButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				
 				// initialize client object once port and ip are entered
 				clientConnection = new Client(data->{
 					Platform.runLater(()->{
@@ -238,10 +245,26 @@ public class GuiClient extends Application {
 						if (d.messageType == 2) {
 							updateClientID();
 							String[] array = d.onlineClients.toArray(new String[0]);
-							clientList.getItems().addAll(array);  //Add array of clients to client list view
+							d.message =s;
+							s +="Client ";
+							s+= array[0] + "\n";
 							
+							clientList.getItems().add(d.message);
+							int lastMessage = clientList.getItems().size();
+							clientList.scrollTo(lastMessage);
+							
+							/*
+							System.out.println("You are in messageType 2");
+							updateClientID();
+							//String[] array = d.onlineClients.toArray(new String[0]);
+							Set<String> onlineClientsNew = d.onlineClients.stream()
+					                .map(String::valueOf)
+					                .collect(Collectors.toSet());
+							clientList.getItems().addAll(onlineClientsNew);
+							//clientList.getItems().addAll(array);  //Add array of clients to client list view
 							int lastClient = clientList.getItems().size();
 							clientList.scrollTo(lastClient);
+							*/
 						}
 						
 						// Welcome Message
@@ -258,12 +281,7 @@ public class GuiClient extends Application {
 							listItems2.scrollTo(lastMessage);
 						}
 
-						/*
-						
-						clientInfo = data;
-						listItems2.getItems().add(data.toString());
-						int lastMessage = listItems2.getItems().size();
-						listItems2.scrollTo(lastMessage);*/
+
 					});
 				}, Integer.parseInt(portBox.getText()), ipBox.getText());
 				clientConnection.start();
@@ -322,7 +340,7 @@ public class GuiClient extends Application {
 				   }
 				   //System.out.println(numbers[0]);
 
-					clientConnection.sendMultiMessage(withoutClientNumber, numbers, clientNumber);  //send the message and the set of receivers to the server
+					clientConnection.sendMultiMessage(withoutClientNumber, numbers);  //send the message and the set of receivers to the server
 
 					// clear textbox and show numbers
 					answerBox.clear();
@@ -338,4 +356,3 @@ public class GuiClient extends Application {
 	}
 
 }
-
