@@ -243,13 +243,14 @@ public class GuiClient extends Application {
 						DataPacket d = clientConnection.clientInfo;
 						// Update Clients List
 						if (d.messageType == 2) {
-							updateClientID();
-							String[] array = d.onlineClients.toArray(new String[0]);
-							d.message =s;
-							s +="Client ";
-							s+= array[0] + "\n";
+							clientList.getItems().clear();
+							for (Integer i : d.onlineClients) {
+								String s = "Client ";
+								s += i + "\n";
+								clientList.getItems().add(s);
+							}
 							
-							clientList.getItems().add(d.message);
+							//clientList.getItems().add(d.message);
 							int lastMessage = clientList.getItems().size();
 							clientList.scrollTo(lastMessage);
 							
@@ -270,6 +271,13 @@ public class GuiClient extends Application {
 						// Welcome Message
 						else if (d.messageType == 3) {
 							updateClientID();
+							clientList.getItems().clear();
+							for (Integer i : d.onlineClients) {
+								String s = "Client ";
+								s += i + "\n";
+								clientList.getItems().add(s);
+							}
+							
 							listItems2.getItems().add(d.message);
 							int lastMessage = listItems2.getItems().size();
 							listItems2.scrollTo(lastMessage);
