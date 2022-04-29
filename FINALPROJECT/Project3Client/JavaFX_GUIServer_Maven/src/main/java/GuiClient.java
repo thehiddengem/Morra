@@ -57,13 +57,13 @@ public class GuiClient extends Application {
 	
 	Button sendBroadcastButton;
 	Button multiMessageButton;
+	ListView<String> clientList;
+	Label format;
 	
 	Button quit;
 	Pane mainPane;
 	Scene main;
 	Scene secretScene;
-	Text player1ScoreText;
-	Text player2ScoreText;
 	Text text_ClientID;
 	int clientGuess = 0;
 	
@@ -146,43 +146,28 @@ public class GuiClient extends Application {
 		listItems2 = new ListView<String>();
 		listItems2.setStyle("-fx-font-family: Verdana; -fx-font-weight: bold");
 		listItems2.setPrefSize(390,475);
+		
+		clientList =new ListView<String>();
+		clientList.setStyle("-fx-font-family: Verdana; -fx-font-weight: bold");
+		clientList.setPrefSize(230,200);
+		
 		answerBox = new TextField();
+		format = new Label("Message @1 @2....");
 
 		quit = new Button("Quit");
 		Button playAgain = new Button("Play Again");
 
 		sendBroadcastButton = new Button("Send Broadcast");
 		multiMessageButton = new Button("Send multi-message");
-		//submitButton.setOnAction(e->{clientConnection.send(answerBox.getText()); answerBox.clear();});
 
 		mainPane = new Pane();
 		mainPane.setBackground(new Background(new BackgroundImage(new Image("forest.png", 1100, 495, false,true), BackgroundRepeat.REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT,  BackgroundSize.DEFAULT)));
-
-		// buttons for guessing
-		ImageView quess0 = new ImageView(new Image("quess0.png", 100, 100, false, true));
-		ImageView quess1 = new ImageView(new Image("quess1.png", 100, 100, false, true));
-		ImageView quess2 = new ImageView(new Image("quess2.png", 100, 100, false, true));
-		ImageView quess3 = new ImageView(new Image("quess3.png",100, 100, false, true));
-		ImageView quess4 = new ImageView(new Image("quess4.png", 100, 100, false, true));
-		ImageView quess5 = new ImageView(new Image("quess5.jpg", 100, 100, false, true));
-
-		HBox guessImages = new HBox(18, quess0, quess1, quess2, quess3, quess4, quess5);
-
-		player1ScoreText = new Text("Player 1 score: " + player1Score);
-		player1ScoreText.setFont(Font.font ("Verdana", 20));
-		player1ScoreText.setStyle("-fx-font-weight: bold");
-		player1ScoreText.setFill(Color.INDIGO);
 		
 		text_ClientID = new Text("Client ID:");
 		text_ClientID.setFont(Font.font ("Verdana", 20));
 		text_ClientID.setStyle("-fx-font-weight: bold");
 		text_ClientID.setFill(Color.INDIGO);
 
-		player2ScoreText = new Text("Player 2 score: " + player2Score);
-		player2ScoreText.setFont(Font.font ("Verdana", 20));
-		player2ScoreText.setStyle("-fx-font-weight: bold");
-		player2ScoreText.setFill(Color.INDIGO);
-		
 		Label label1= new Label("Secret scene=)");
 		Button secret =new Button("Pressss me");
 		secret.setOnAction(e->window.setScene(secretScene));
@@ -190,6 +175,7 @@ public class GuiClient extends Application {
 		VBox layout1 = new VBox(20);
 		layout1.getChildren().addAll(label1,secret);
 		main = new Scene(layout1, 200,200);
+	
 		
 		Button back =new Button("This scene sucks, close me");
 		back.setOnAction(new EventHandler<ActionEvent>() {
@@ -202,22 +188,22 @@ public class GuiClient extends Application {
 		StackPane layout2 = new StackPane();
 		layout2.getChildren().add(back);
 		secretScene =new Scene(layout2, 600,300);
-		//window.setScene(startScene);
 		window.show();
 
 
-		mainPane.getChildren().addAll(answerBox, sendBroadcastButton, multiMessageButton, listItems2, guessImages, player1ScoreText, player2ScoreText, text_ClientID,playAgain,secret, quit);
+		mainPane.getChildren().addAll(answerBox,format, sendBroadcastButton, multiMessageButton, clientList, listItems2, text_ClientID,playAgain,secret, quit);
 		answerBox.relocate(20,170);
+		format.relocate(175, 172);
+
 		sendBroadcastButton.relocate(20, 210);
 		multiMessageButton.relocate(150, 210);
 		playAgain.relocate(20, 240);
 		quit.relocate(20, 270);
 		secret.relocate(50, 100);
+		clientList.relocate(500,10);
 		listItems2.relocate(700, 10);
-		guessImages.relocate(0, 380);
 		text_ClientID.relocate(5, 10);
-		player1ScoreText.relocate(275,10);
-		player2ScoreText.relocate(275, 50);
+
 
 
 		// implement clicking functionality for buttons:
@@ -225,19 +211,6 @@ public class GuiClient extends Application {
 		playAgain.setDisable(false);
 		playAgain.setOnAction(e->{
 			
-			quess0.setDisable(false);
-			quess1.setDisable(false);
-			quess2.setDisable(false);
-			quess4.setDisable(false);
-			quess3.setDisable(false);
-			quess5.setDisable(false);
-			
-			quess0.setVisible(true);
-			quess1.setVisible(true);
-			quess2.setVisible(true);
-			quess4.setVisible(true);
-			quess3.setVisible(true);				
-			quess5.setVisible(true);
 			
 			answerBox.clear();
 			});
@@ -263,7 +236,12 @@ public class GuiClient extends Application {
 						DataPacket d = clientConnection.clientInfo;
 						// Update Clients List
 						if (d.messageType == 2) {
-							//Update clients list
+							updateClientID();
+							String[] array = d.onlineClients.toArray(new String[0]);
+							clientList.getItems().addAll(array);  //Add array of clients to client list view
+							
+							int lastClient = clientList.getItems().size();
+							clientList.scrollTo(lastClient);
 						}
 						
 						// Welcome Message
@@ -295,127 +273,7 @@ public class GuiClient extends Application {
 			}
 		});
 
-		// "finger" choices
-		quess0.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent event) {
-				quess4.setDisable(true);
-				quess1.setDisable(true);
-				quess2.setDisable(true);
-				quess3.setDisable(true);
-				quess5.setDisable(true);
-				
-				quess4.setVisible(false);
-				quess1.setVisible(false);
-				quess2.setVisible(false);
-				quess3.setVisible(false);				
-				quess5.setVisible(false);
-
-				clientGuess = 0;
-			}
-		});
-
-		quess1.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent event) {
-				quess0.setDisable(true);
-				quess4.setDisable(true);
-				quess2.setDisable(true);
-				quess3.setDisable(true);
-				quess5.setDisable(true);
-				
-				quess0.setVisible(false);
-				quess4.setVisible(false);
-				quess2.setVisible(false);
-				quess3.setVisible(false);				
-				quess5.setVisible(false);
-
-				clientGuess = 1;
-
-			}
-		});
-
-		quess2.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent event) {
-				quess0.setDisable(true);
-				quess1.setDisable(true);
-				quess4.setDisable(true);
-				quess3.setDisable(true);
-				quess5.setDisable(true);
-				
-				quess0.setVisible(false);
-				quess1.setVisible(false);
-				quess4.setVisible(false);
-				quess3.setVisible(false);				
-				quess5.setVisible(false);
-
-
-				clientGuess = 2;
-
-			}
-		});
-
-		quess3.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent event) {
-				
-				quess0.setDisable(true);
-				quess1.setDisable(true);
-				quess2.setDisable(true);
-				quess4.setDisable(true);
-				quess5.setDisable(true);
-				
-				quess0.setVisible(false);
-				quess1.setVisible(false);
-				quess2.setVisible(false);
-				quess4.setVisible(false);				
-				quess5.setVisible(false);
-
-
-				clientGuess = 3;
-
-			}
-		});
-
-		quess4.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent event) {
-				quess0.setDisable(true);
-				quess1.setDisable(true);
-				quess2.setDisable(true);
-				quess3.setDisable(true);
-				quess5.setDisable(true);
-				
-				quess0.setVisible(false);
-				quess1.setVisible(false);
-				quess2.setVisible(false);
-				quess3.setVisible(false);				
-				quess5.setVisible(false);
-
-				clientGuess = 4;
-			}
-		});
-
-		quess5.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent event) {
-				quess0.setDisable(true);
-				quess1.setDisable(true);
-				quess2.setDisable(true);
-				quess3.setDisable(true);
-				quess4.setDisable(true);
-				
-				quess0.setVisible(false);
-				quess1.setVisible(false);
-				quess2.setVisible(false);
-				quess3.setVisible(false);
-				quess4.setVisible(false);
-
-				clientGuess = 5;
-
-			}
-		});
+		
 
 		// submit guess button to broadcast for all clients:
 		sendBroadcastButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -425,27 +283,11 @@ public class GuiClient extends Application {
 				String message = (answerBox.getText());
 
 				if (message.length() > 1) {
-					
-
 
 					clientConnection.sendBroadcast(message);
-
 					// clear textbox and show numbers
 					answerBox.clear();
 
-					quess0.setDisable(false);
-					quess1.setDisable(false);
-					quess2.setDisable(false);
-					quess3.setDisable(false);
-					quess4.setDisable(false);
-					quess5.setDisable(false);
-					
-					quess0.setVisible(true);
-					quess1.setVisible(true);
-					quess2.setVisible(true);
-					quess3.setVisible(true);
-					quess4.setVisible(true);
-					quess5.setVisible(true);
 				}
 			}
 		});
@@ -485,19 +327,6 @@ public class GuiClient extends Application {
 					// clear textbox and show numbers
 					answerBox.clear();
 
-					quess0.setDisable(false);
-					quess1.setDisable(false);
-					quess2.setDisable(false);
-					quess3.setDisable(false);
-					quess4.setDisable(false);
-					quess5.setDisable(false);
-					
-					quess0.setVisible(true);
-					quess1.setVisible(true);
-					quess2.setVisible(true);
-					quess3.setVisible(true);
-					quess4.setVisible(true);
-					quess5.setVisible(true);
 				}
 			}
 		});
@@ -509,3 +338,4 @@ public class GuiClient extends Application {
 	}
 
 }
+
