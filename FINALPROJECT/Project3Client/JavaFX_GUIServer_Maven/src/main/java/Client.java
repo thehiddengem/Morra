@@ -44,6 +44,10 @@ public class Client extends Thread{
                 if (clientInfo.messageType == 3) {
                 	GuiClient.clientNumber = clientInfo.clientNumber;
                 }
+                else if(clientInfo.messageType ==2) {
+                	GuiClient.onlineClients = clientInfo.onlineClients;
+                	GuiClient.clientNumber = clientInfo.clientNumber;
+                }
                 callback.accept(clientInfo);
             }
             catch(Exception e) {}
@@ -69,19 +73,20 @@ public class Client extends Thread{
     }
     
     //sends the morraInfo class with the message and the set of receivers
-    public void sendMultiMessage( String message, int[] numbers,int clientNumber)  {
+    public void sendMultiMessage( String message, int[] numbers)  {
         try {
-        	clientInfo.clientNumber = clientNumber;
-        	clientInfo.message = message;
-        	for (int v : numbers) {
-        	    clientInfo.receivers.add(v);
-        	}
+            Set<Integer> temp = new HashSet<>();
+            clientInfo.message = message;
+            for (int v : numbers) {
+                temp.add(v);
+            }
 
-        	//System.out.println(clientInfo.receivers);
-        	clientInfo.messageType = 1;
+            System.out.println(clientInfo.receivers);
+            clientInfo.messageType = 1;
+            clientInfo.receivers = temp;
             out.writeObject(clientInfo);
             out.reset();
-            
+
             // Don't think in.reset() is needed because server will do out.reset on every message
             //in.reset();
         } catch (IOException e) {
