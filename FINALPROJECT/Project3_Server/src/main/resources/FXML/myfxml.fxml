@@ -14,9 +14,7 @@
 			<Label fx:id = "l_port" text = "PORT"/>
 			<TextField BorderPane.alignment = "TOP_LEFT" fx:id = "tf_port" promptText = "5555" />
 			<Button fx:id = "button_b1" text = "Start Server!" onAction = "#button_1Method"/>
-			<Button fx:id = "button_b2" text = "Player Info" onAction = "#button_2Method"/>
-			<Label fx:id = "l_player_count" text = "Players: " />
-			<TextField BorderPane.alignment = "TOP_LEFT" fx:id = "tf_center" promptText = "Players" />
+			<Button fx:id = "button_b2" text = "SystemOut Log" onAction = "#button_2Method"/>
 		</VBox>
 	
 	</left>
